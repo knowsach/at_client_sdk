@@ -1,8 +1,11 @@
 import 'dart:convert';
-import 'dart:typed_data';
-import 'package:at_client/src/preference/at_client_preference.dart';
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:at_client/src/preference/at_client_preference.dart';
 import 'package:crypto/crypto.dart';
+
+import 'at_demo_data.dart' as demo_data;
 
 class TestUtil {
   static AtClientPreference getPreferenceRemote() {
@@ -11,6 +14,38 @@ class TestUtil {
     preference.privateKey = ''; // specify private key of user here.
     preference.rootDomain = 'test.do-sf2.atsign.zone';
     preference.outboundConnectionTimeout = 60000;
+    return preference;
+  }
+
+  static AtClientPreference getSitaramPreference() {
+    var preference = AtClientPreference();
+    preference.hiveStoragePath =
+        '/home/sitaram/atsign/hive/at_client_1/hive/client';
+    preference.commitLogPath =
+        '/home/sitaram/atsign/hive/at_client_1/hive/client/commit';
+    preference.isLocalStoreRequired = true;
+    preference.syncStrategy = SyncStrategy.IMMEDIATE;
+    preference.privateKey = demo_data
+        .pkamPrivateKeyMap['@sitaram🛠']; // specify private key of user here.
+    preference.rootDomain = 'vip.ve.atsign.zone';
+    // preference.keyStoreSecret =
+    //     _getKeyStoreSecret(''); // path of hive encryption key filefor client
+    return preference;
+  }
+
+  static AtClientPreference getMuraliPreference() {
+    var preference = AtClientPreference();
+    preference.hiveStoragePath =
+        '/home/sitaram/atsign/hive/at_client/hive/client';
+    preference.commitLogPath =
+        '/home/sitaram/atsign/hive/at_client/hive/client/commit';
+    preference.isLocalStoreRequired = true;
+    preference.syncStrategy = SyncStrategy.IMMEDIATE;
+    preference.privateKey =
+        'MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCjycOqdMbUy6En0EqeRcBu4urDviCyKrNiw2kI9bpiTX9kqA2pmeYjPqoC/rsYsgIQu0hmXDmF/n1MkTsaxL7itXQbJQDc45gP3yGCIIw6QSmIFWivbak81TeGn5GmB9suKRbivyN7hItjmLUFRUhARSZ3bMjAjYmNspATTDAHoc19UnxvxUrJGRZESSEI0liS0TjqQ53HF9r7R9qHEaiMTRFzwrDzFOwvrrgGux+NNX28hZWQU/kntqp64ddPWhRCWyrx7WgzZHNfWNK26mMxyeC5bF5dQXMOeJWcDZWfIWsntu2CuxqKEoxKy4SNcO5MNvXn0E7OZNDm45zATe4FAgMBAAECggEAZYqSqbyYABj2Ii659AGeWaCIly3qK0rZx6MKHSnqkUMmdYrSXZEx4ivZTt4JtDe3nBPfwMXwS6gImk13bRMInJiOEL4SGN9oyH420evHw93eF6XeLtQ3laVCNU38CAja03VZ4N1K7CqyF972avwW3PGB9YwVsXqOCrDnLW+QX0nseX5F7i0oDAHKvQcQi/lIbf4eFP/MC7VJYo4kMeEFw/UpCWsRbh+fCwH4PPcrM768IvoplxtM82w2V2bxnkWZR6Hjp8sD0cvdgE74/chWHVj15yJEfOcwsnu0/rkIe57FpajuAe3lVhVfy986kT0S19HFrMdl70YzNhdnIWLCSQKBgQDU+/cZJH/GZokQAQOn9hynBU4toeUk7rLGzMAlXlLGKmTANcU25c7MdYfuvtsPaEWNKm593MMQkOct4Cn6pqYG4py8Rqlg+qGgQPxWPAWDZRuLunVGGAUYdJy5WrZ77/ihsMTR95Thbvbz5aItQbRO1h3MAYUWDqUbbJPjPF6V1wKBgQDE3jAOCrg9cZWqTeVM/77aMoAOmjqzzGCPg447Ay939NXgA4fv3l1KcT7MAmgiHvOyG1Gl9vQR0RXRPRfng4veabeH+ZFAt6XVP0YCcS64RUIaK+N6A1tk3FeI+BMlMqkzfbv8cz6stmEbJ0GfEjnH3mjsApCdIOfhJx/4RBingwKBgQC3LhZx63ByBVIxD45DcWtnQyrgGHPqddoRHZzNBvkOMvwATL7X3oMkWpmU/1WNRNM8/JeXbL3gi6ApVrkEOTxmg5TmYafgHu/P0tS0nl7niZhNbwraRGJtjC4XRSvaIKSo/E3rgJLt6PBBCOmZHv+jJojuIwiB1gqvMY1oTU3UdQKBgAPFGXh7XhHXJf2P5k82Kop1IxykeXFN/Z9h7oxUwEj0yE+04ZqHUJQHXSN8/E+C9jm36jVaaEwbC+bo25dUXo5QyfHxpoVtvuA5iPatAi8HLH/hzUZd4BcrXQXDcmJo+PKCeuIXtuCJ0Yw6kTghmjeom6vBVNGderNGE4emji5PAoGBAKb8feuoCkpf3VFZxVF6lnrCVudgIl5Uuz7ttt83kcZI+zLAuZhIZHeH5XAI7CXEkOyaa5mYA/AEefcXNHHr88hQ4a2yZ3o38VD0ti+fusQnQ/KV5J2rtYI9HEYdw7QUhRzHAxPKcEsq/lgkFepSUtwphhzHCVp8wuUvDC7wTEpZ'; // specify private key of user here.
+    preference.rootDomain = 'vip.ve.atsign.zone';
+    // preference.keyStoreSecret =
+    //     _getKeyStoreSecret(''); // path of hive encryption key filefor client
     return preference;
   }
 
