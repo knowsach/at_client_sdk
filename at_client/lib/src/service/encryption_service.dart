@@ -252,8 +252,22 @@ class EncryptionService {
     var sharedKey =
         EncryptionUtil.decryptKey(encryptedSharedKey, currentAtSignPrivateKey);
 
-    //3. decrypt stream using decrypted aes shared key
-    var decryptedValue = EncryptionUtil.decryptBytes(encryptedValue, sharedKey);
+    var decryptedValue;
+    try {
+      //3. decrypt stream using decrypted aes shared key
+      decryptedValue = EncryptionUtil.decryptBytes(encryptedValue, sharedKey);
+    } on Exception catch (e) {
+      logger.severe(e);
+      var sharedKeyLookUpBuilder = LookupVerbBuilder()
+        ..atKey = AT_ENCRYPTION_SHARED_KEY
+        ..sharedBy = sharedBy
+        ..auth = true;
+      encryptedSharedKey = await remoteSecondary.executeAndParse(sharedKeyLookUpBuilder);
+      if ((encryptedSharedKey != null) && (encryptedSharedKey.isNotEmpty)) {
+        encryptedSharedKey = encryptedSharedKey.replaceFirst('data:', '');
+      }
+      decryptedValue = EncryptionUtil.decryptBytes(encryptedValue, sharedKey);
+    }
     return decryptedValue;
   }
 
