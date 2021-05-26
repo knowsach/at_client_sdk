@@ -7,6 +7,7 @@ import 'package:at_client/src/client/local_secondary.dart';
 import 'package:at_client/src/client/remote_secondary.dart';
 import 'package:at_client/src/client/secondary.dart';
 import 'package:at_client/src/exception/at_client_exception_util.dart';
+import 'package:at_client/src/manager/monitor_manager.dart';
 import 'package:at_client/src/manager/preference_manager.dart';
 import 'package:at_client/src/manager/storage_manager.dart';
 import 'package:at_client/src/manager/sync_manager.dart';
@@ -106,14 +107,22 @@ class AtClientImpl implements AtClient {
   }
 
   @override
-  Future<void> startMonitor(String privateKey, Function notificationCallback,
+  Future<void> startMonitor(
+      String privateKey, Function successCallback, Function errorCallback,
       {String regex}) async {
     var monitorVerbBuilder = MonitorVerbBuilder();
     if (regex != null) {
       monitorVerbBuilder.regex = regex;
     }
-    await _remoteSecondary.monitor(
-        monitorVerbBuilder.buildCommand(), notificationCallback, privateKey);
+    var monitor = MonitorManager.getMonitor(monitorVerbBuilder, successCallback,
+        errorCallback, currentAtSign, _preference,
+        regex: regex);
+    // Step 2: start monitor (To be backwards compatible)
+    await monitor.start();
+
+    //return monitor;
+    // await _remoteSecondary.monitor(
+    //     monitorVerbBuilder.buildCommand(), notificationCallback, privateKey);
   }
 
   @override
