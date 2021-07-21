@@ -275,8 +275,8 @@ abstract class AtClient {
   ///
   ///   notifyStatus('75037ac4-6a15-43cc-ba66-e621bb2a6366');
   ///```
-  Future<void> notifyStatus(
-      String notificationId, Function onDone, Function onError);
+  Future<dynamic> notifyStatus(
+      String notificationId, {Function onDone, Function onError});
 
   ///Returns the list of received notifications of an atsign, Optionally, notifications can be filtered on from date, to date and regular expression
   ///```

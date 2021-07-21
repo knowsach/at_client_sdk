@@ -139,7 +139,8 @@ class AtClientImpl implements AtClient {
     syncManager.localSecondary = _localSecondary!;
     syncManager.remoteSecondary = _syncRemoteSecondary!;
     syncManager.remoteSecondary.atLookUp.privateKey ??= _preference.privateKey;
-    syncManager.remoteSecondary.atLookupSync.privateKey ??= _preference.privateKey;
+    syncManager.remoteSecondary.atLookupSync.privateKey ??=
+        _preference.privateKey;
     return syncManager;
   }
 
@@ -573,8 +574,9 @@ class AtClientImpl implements AtClient {
       if (builder.dataSignature != null) {
         builder.isJson = true;
       }
-      if(sharedWith != null) {
-        builder.sharedKeyStatus = getSharedKeyName(SharedKeyStatus.LOCAL_UPDATED);
+      if (sharedWith != null) {
+        builder.sharedKeyStatus =
+            getSharedKeyName(SharedKeyStatus.LOCAL_UPDATED);
       }
       var secondary = getSecondary(isDedicated: isDedicated);
       putResult = await secondary.executeVerb(builder,
@@ -739,16 +741,30 @@ class AtClientImpl implements AtClient {
   //   /// }
   /// ```
   @override
-  Future<void> notifyStatus(
-      String notificationId, Function onDone, Function onError) async {
+  Future<dynamic> notifyStatus(String notificationId,
+      {Function? onDone, Function? onError}) async {
     var builder = NotifyStatusVerbBuilder()..notificationId = notificationId;
     try {
       var notifyStatus = await getRemoteSecondary()!.executeVerb(builder);
-      onDone(notifyStatus);
+      if (onDone != null) {
+        onDone(notifyStatus);
+      } else {
+        return notifyStatus;
+      }
     } on Exception catch (e) {
-      onError(e);
+      if (onError != null) {
+        onError(e);
+      }
     }
   }
+
+  // @override
+  // @Deprecated('Moved to new signature')
+  // Future<String> notifyStatus(String notificationId) async {
+  //   var builder = NotifyStatusVerbBuilder()..notificationId = notificationId;
+  //   var notifyStatus = await getRemoteSecondary()!.executeVerb(builder);
+  //   return notifyStatus;
+  // }
 
   @override
   Future<String> notifyList(
