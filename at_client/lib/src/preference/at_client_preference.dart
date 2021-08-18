@@ -52,6 +52,9 @@ class AtClientPreference {
 
   /// Number of keys to batch for sync to secondary server
   int syncBatchSize = 5;
+
+  /// Setting to true enables stream sync to run. Else normal sync runs.
+  bool isStreamSync = false;
 }
 
 enum SyncStrategy {

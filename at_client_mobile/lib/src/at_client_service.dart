@@ -366,7 +366,10 @@ class AtClientService {
       var _syncManager = SyncManagerImpl.getInstance().getSyncManager(atSign);
       _syncManager!.init(atSign!, preference, atClient!.getRemoteSecondary(),
           atClient!.getLocalSecondary());
-      await _syncManager.sync(appInit: true, regex: preference.syncRegex);
+      await _syncManager.sync(
+          appInit: true,
+          regex: preference.syncRegex,
+          isStream: preference.isStreamSync);
     }
   }
 

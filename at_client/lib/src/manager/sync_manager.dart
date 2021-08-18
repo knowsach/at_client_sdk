@@ -31,6 +31,8 @@ class SyncManager {
 
   var _isScheduled = false;
 
+  var _serverCommitId;
+
   SyncManager(this._atSign);
 
   void init(String atSign, AtClientPreference preference,
@@ -67,6 +69,7 @@ class SyncManager {
     //initially isSyncInProgress and pendingSyncExists are false.
     //If a new sync triggered while previous sync isInprogress,then pendingSyncExists set to true and returns.
     if (isSyncInProgress) {
+      logger.info('Sync in progress. Cannot start new sync process');
       pendingSyncExists = true;
       return;
     }
@@ -93,6 +96,7 @@ class SyncManager {
       var lastSyncedCommitId = lastSyncedEntry?.commitId;
       var serverCommitId =
           await SyncUtil.getLatestServerCommitId(_remoteSecondary!, regex);
+      _serverCommitId = serverCommitId;
       var lastSyncedLocalSeq =
           lastSyncedEntry != null ? lastSyncedEntry.key : -1;
       if (appInit && lastSyncedLocalSeq > 0) {
@@ -118,7 +122,10 @@ class SyncManager {
         // send sync verb to server and sync the changes to local
         if (isStream) {
           await _remoteSecondary!.sync(lastSyncedCommitId,
-              syncCallBack: _syncLocal, regex: regex, isStream: isStream);
+              syncCallBack: _syncLocal,
+              onSyncSuccess: _onSyncComplete,
+              regex: regex,
+              isStream: isStream);
           return;
         }
         var syncResponse =
@@ -128,6 +135,8 @@ class SyncManager {
           var syncResponseJson = jsonDecode(syncResponse);
           await Future.forEach(syncResponseJson,
               (dynamic serverCommitEntry) => _syncLocal(serverCommitEntry));
+          // Setting pendingSyncExists to false, to prevent multiple sync process running.
+          pendingSyncExists = false;
         }
         return;
       }
@@ -169,8 +178,6 @@ class SyncManager {
       if (e.errorCode == 'AT0021') {
         logger.info('skipping sync since secondary is not reachable');
       }
-    } finally {
-      isSyncInProgress = false;
     }
   }
 
@@ -491,6 +498,25 @@ class SyncManager {
       _isScheduled = true;
     } on Exception catch (e) {
       print('Exception during scheduleSyncTask ${e.toString()}');
+    }
+  }
+
+  /// Verifies if the server and local are in sync
+  /// Returns true if server and local are in sync, else false.
+  Future<bool> _isSync() async {
+    var lastSyncedEntry = await SyncUtil.getLastSyncedEntry(
+        _preference!.syncRegex,
+        atSign: _atSign!);
+    var lastSyncedCommitId = lastSyncedEntry?.commitId;
+    return _serverCommitId == lastSyncedCommitId;
+  }
+
+  /// Sets the [pendingSyncExists] to false if server and local are in sync
+  /// to prevent the multiple sync calls.
+  Future<void> _onSyncComplete() async {
+    if (await _isSync()) {
+      logger.info('Sync completed successfully');
+      pendingSyncExists = false;
     }
   }
 }
