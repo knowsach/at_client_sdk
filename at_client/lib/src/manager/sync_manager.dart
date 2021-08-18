@@ -94,15 +94,15 @@ class SyncManager {
       var lastSyncedEntry =
           await SyncUtil.getLastSyncedEntry(regex, atSign: _atSign!);
       var lastSyncedCommitId = lastSyncedEntry?.commitId;
-      var serverCommitId =
+      _serverCommitId =
           await SyncUtil.getLatestServerCommitId(_remoteSecondary!, regex);
-      _serverCommitId = serverCommitId;
+
       var lastSyncedLocalSeq =
           lastSyncedEntry != null ? lastSyncedEntry.key : -1;
       if (appInit && lastSyncedLocalSeq > 0) {
-        serverCommitId ??= -1;
-        if (lastSyncedLocalSeq > serverCommitId) {
-          lastSyncedLocalSeq = serverCommitId;
+        _serverCommitId ??= -1;
+        if (lastSyncedLocalSeq > _serverCommitId) {
+          lastSyncedLocalSeq = _serverCommitId;
         }
         logger.finer('app init: lastSyncedLocalSeq: $lastSyncedLocalSeq');
       }
@@ -111,14 +111,14 @@ class SyncManager {
           atSign: _atSign!);
       // cloud and local are in sync if there is no synced changes in local and commitIDs are equals
       if (SyncUtil.isInSync(
-          unCommittedEntries, serverCommitId, lastSyncedCommitId)) {
+          unCommittedEntries, _serverCommitId, lastSyncedCommitId)) {
         logger.info('server and local is in sync');
         return;
       }
       lastSyncedCommitId ??= -1;
-      serverCommitId ??= -1;
+      _serverCommitId ??= -1;
       // cloud is ahead if server commit id is > last synced commit id in local
-      if (serverCommitId > lastSyncedCommitId) {
+      if (_serverCommitId > lastSyncedCommitId) {
         // send sync verb to server and sync the changes to local
         if (isStream) {
           await _remoteSecondary!.sync(lastSyncedCommitId,
