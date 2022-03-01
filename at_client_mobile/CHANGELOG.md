@@ -1,3 +1,15 @@
+## 3.1.8
+- at_client version change for automatic sync trigger 
+## 3.1.7
+- at_client and at_lookup version change for outbound listener bug fix
+## 3.1.6
+- at_client version change for refactoring put and get methods
+- at_lookup version change implementing AtTimeoutException
+- at_commons and at_utils version change for AtTimeoutException
+## 3.1.5
+- at_client version change
+- at_lookup version change
+- at_commons and at_utils version change
 ## 3.1.4
 - updated readme and  doc changes
 - added example app
