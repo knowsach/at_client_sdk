@@ -85,8 +85,8 @@ class NotificationParams {
   late MessageTypeEnum _messageType;
   late PriorityEnum _priority;
   late StrategyEnum _strategy;
-  final int _latestN = 1;
-  final String _notifier = SYSTEM;
+  int _latestN = 1;
+  String _notifier = SYSTEM;
 
   AtKey get atKey => _atKey;
 
@@ -136,6 +136,19 @@ class NotificationParams {
       .._messageType = MessageTypeEnum.text
       .._priority = PriorityEnum.low
       .._strategy = StrategyEnum.all;
+  }
+
+  static NotificationParams notifyLatest(AtKey atKey, String notifier, int N,
+      {String? value}) {
+    return NotificationParams()
+      .._atKey = atKey
+      .._value = value
+      .._operation = OperationEnum.update
+      .._messageType = MessageTypeEnum.key
+      .._priority = PriorityEnum.low
+      .._strategy = StrategyEnum.latest
+      .._notifier = notifier
+      .._latestN = N;
   }
 }
 
