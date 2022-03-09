@@ -8,6 +8,8 @@ import 'package:at_commons/at_commons.dart';
 import 'package:at_lookup/at_lookup.dart';
 import 'package:at_utils/at_logger.dart';
 
+import 'atsign_key.dart';
+
 class AtClientService {
   final AtSignLogger _logger = AtSignLogger('AtClientService');
   AtClient? _atClient;
@@ -178,16 +180,25 @@ class AtClientService {
     var encryptionPublicKey = EncryptionUtil.decryptValue(
         extractedjsonData[BackupKeyConstants.ENCRYPTION_PUBLIC_KEY_FROM_FILE],
         decryptKey);
-    await _keyChainManager.putValue(
-        atsign, keychainEncryptionPublicKey, encryptionPublicKey);
+    // await _keyChainManager.putValue(
+    //     atsign, keychainEncryptionPublicKey, encryptionPublicKey);
 
     var encryptionPrivateKey = EncryptionUtil.decryptValue(
         extractedjsonData[BackupKeyConstants.ENCRYPTION_PRIVATE_KEY_FROM_FILE],
         decryptKey);
-    await _keyChainManager.putValue(
-        atsign, keychainEncryptionPrivateKey, encryptionPrivateKey);
-    await _keyChainManager.putValue(
-        atsign, keychainSelfEncryptionKey, decryptKey);
+    // await _keyChainManager.putValue(
+    //     atsign, keychainEncryptionPrivateKey, encryptionPrivateKey);
+    // await _keyChainManager.putValue(
+    //     atsign, keychainSelfEncryptionKey, decryptKey);
+
+    var atSignItem = await _keyChainManager.getAtsign(name: atsign) ?? AtsignKey(name: atsign);
+    atSignItem = atSignItem.copyWith(
+      encryptionPrivateKey: encryptionPrivateKey,
+      encryptionPublicKey: encryptionPublicKey,
+      selfEncryptionKey: decryptKey,
+    );
+    await _keyChainManager.storeAtSign(atSign: atSignItem);
+
     // Add atsign to the keychain.
     await _keyChainManager.storeCredentialToKeychain(atsign,
         privateKey: pkamPrivateKey, publicKey: pkamPublicKey);
@@ -199,6 +210,7 @@ class AtClientService {
   Future<bool> onboard(
       {required AtClientPreference atClientPreference, String? atsign}) async {
     _atClientAuthenticator = AtClientAuthenticator();
+    await _keyChainManager.migrateKeychainData();
     if (atsign == null || atsign == '') {
       atsign = await _keyChainManager.getAtSign();
     } else {
@@ -232,8 +244,10 @@ class AtClientService {
   ///Returns [OnboardingStatus] of the atsign by checking it with remote server.
   Future<OnboardingStatus> getKeyRestorePolicy(String atSign) async {
     var serverEncryptionPublicKey = await _getServerEncryptionPublicKey(atSign);
+    // var localEncryptionPublicKey =
+    //     await _keyChainManager.getValue(atSign, keychainEncryptionPublicKey);
     var localEncryptionPublicKey =
-        await _keyChainManager.getValue(atSign, keychainEncryptionPublicKey);
+        await _keyChainManager.getEncryptionPublicKey(atSign);
     if (_isNullOrEmpty(localEncryptionPublicKey) &&
             _isNullOrEmpty(serverEncryptionPublicKey) ||
         (_isNullOrEmpty(serverEncryptionPublicKey) &&
@@ -341,7 +355,8 @@ class KeychainUtil {
   }
 
   static Future<String?> getAESKey(String atsign) async {
-    return await _keyChainManager.getValue(atsign, keychainSelfEncryptionKey);
+    // return await _keyChainManager.getValue(atsign, keychainSelfEncryptionKey);
+    return (await _keyChainManager.getAtsign(name: atsign))?.selfEncryptionKey;
   }
 
   static Future<String?> getSelfEncryptionKey(String atSign) async {
@@ -349,6 +364,7 @@ class KeychainUtil {
   }
 
   static Future<String?> getAtSign() async {
+    await _keyChainManager.migrateKeychainData();
     return await _keyChainManager.getAtSign();
   }
 
