@@ -73,6 +73,13 @@ class FileTransferService {
     final Completer<FileDownloadResponse> completer =
         Completer<FileDownloadResponse>();
     try {
+
+      String filebinContainer = fileTransferObject.fileUrl;
+
+
+     filebinContainer = filebinContainer.replaceFirst('/archive', '');
+     filebinContainer = filebinContainer.replaceFirst('/zip', '');
+      
       var httpClient = http.Client();
       var request = http.Request('GET', Uri.parse(fileTransferObject.fileUrl));
       var response = httpClient.send(request);
@@ -126,5 +133,70 @@ class FileTransferService {
         FileDownloadResponse(isError: true, errorMsg: e.toString()),
       );
     }
+  }
+
+  Future downloadAllFilesIndividually(FileTransferObject fileTransferObject, String downloadPath) async {
+       final Completer<FileDownloadResponse> completer =
+        Completer<FileDownloadResponse>();
+
+
+     String filebinContainer = fileTransferObject.fileUrl;
+     filebinContainer = filebinContainer.replaceFirst('/archive', '');
+     filebinContainer = filebinContainer.replaceFirst('/zip', '');
+    var httpClient = http.Client();
+     var tempDirectory =
+              await Directory(downloadPath).createTemp('encrypted-files');
+     var fileDownloadResponse = FileDownloadResponse(isError: false, filePath: tempDirectory.path);
+
+
+   for(int i=0; i< fileTransferObject.fileStatus.length; i++) {
+     String fileName = fileTransferObject.fileStatus[i].fileName!;
+     String fileUrl = filebinContainer + Platform.pathSeparator + fileName;
+     var downloadResponse = await downloadIndividualFile(fileUrl, tempDirectory.path, fileName);
+     if(downloadResponse.isError){
+       fileDownloadResponse =  FileDownloadResponse(isError: true, filePath: tempDirectory.path, errorMsg: 'Fail to download file.');
+     }
+   }  
+
+   completer.complete(fileDownloadResponse);
+   return completer.future;
+  } 
+
+  Future downloadIndividualFile(String fileUrl, String tempPath, String fileName) async {
+     final Completer<FileDownloadResponse> completer =
+        Completer<FileDownloadResponse>();
+      var httpClient = http.Client();
+      var request = http.Request('GET', Uri.parse(fileUrl));
+      var response = httpClient.send(request);
+      late StreamSubscription downloadSubscription;
+      File file = File(tempPath + Platform.pathSeparator + fileName);
+
+    try{
+        downloadSubscription =
+          response.asStream().listen((http.StreamedResponse r) {
+        r.stream.listen((List<int> chunk) {
+          file.writeAsBytesSync(chunk);
+        }, onDone: () async {
+          downloadSubscription.cancel();      
+          completer.complete(
+            FileDownloadResponse(filePath: file.path),
+          );
+        }, onError: () {
+           downloadSubscription.cancel();
+          completer.complete(
+            FileDownloadResponse(
+                isError: true, errorMsg: 'Fail to download file.'),
+          );
+        });
+      });
+
+  return completer.future;
+        }catch(e) {
+           downloadSubscription.cancel();
+             completer.complete(
+            FileDownloadResponse(
+                isError: true, errorMsg: 'Fail to download file.'),
+          );
+      }
   }
 }
